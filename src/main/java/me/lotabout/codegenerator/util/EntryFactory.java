@@ -1,10 +1,10 @@
 package me.lotabout.codegenerator.util;
 
+import org.jetbrains.java.generate.element.ElementFactory;
+import org.jetbrains.java.generate.element.FieldElement;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
-import org.jetbrains.java.generate.element.ElementFactory;
-import org.jetbrains.java.generate.element.FieldElement;
 
 public class EntryFactory {
     public static FieldEntry of(PsiField field, boolean useAccessor) {

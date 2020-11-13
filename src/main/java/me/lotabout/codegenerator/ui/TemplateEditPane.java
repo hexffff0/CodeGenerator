@@ -21,26 +21,47 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TemplateEditPane {
+
     private JPanel templateEdit;
+
     private JComboBox templateTypeCombo;
+
     private JTextField templateIdText;
+
     private JTextField templateNameText;
+
     private JPanel editorPane;
+
     private JTextField fileEncodingText;
+
     private JCheckBox jumpToMethodCheckBox;
+
     private JRadioButton askRadioButton;
+
     private JRadioButton replaceExistingRadioButton;
+
     private JRadioButton generateDuplicateMemberRadioButton;
+
     private JRadioButton atCaretRadioButton;
+
     private JRadioButton atEndOfClassRadioButton;
+
     private JScrollPane settingsPanel;
+
     private JCheckBox templateEnabledCheckBox;
+
     private JTabbedPane templateTabbedPane;
+
     private JButton addMemberButton;
+
     private JButton addClassButton;
+
     private JTextField classNameVmText;
+
     private JCheckBox alwaysPromptForPackageCheckBox;
+
     private Editor editor;
+
     private List<SelectionPane> pipeline = new ArrayList<>();
 
     public TemplateEditPane(CodeTemplate codeTemplate) {
@@ -59,28 +80,28 @@ public class TemplateEditPane {
         replaceExistingRadioButton.setSelected(false);
         generateDuplicateMemberRadioButton.setSelected(false);
         switch (codeTemplate.whenDuplicatesOption) {
-            case ASK:
-                askRadioButton.setSelected(true);
-                break;
-            case REPLACE:
-                replaceExistingRadioButton.setSelected(true);
-                break;
-            case DUPLICATE:
-                generateDuplicateMemberRadioButton.setSelected(true);
-                break;
+        case ASK:
+            askRadioButton.setSelected(true);
+            break;
+        case REPLACE:
+            replaceExistingRadioButton.setSelected(true);
+            break;
+        case DUPLICATE:
+            generateDuplicateMemberRadioButton.setSelected(true);
+            break;
         }
 
         atCaretRadioButton.setSelected(false);
         atEndOfClassRadioButton.setSelected(false);
         switch (codeTemplate.insertNewMethodOption) {
-            case AT_CARET:
-                atCaretRadioButton.setSelected(true);
-                break;
-            case AT_THE_END_OF_A_CLASS:
-                atEndOfClassRadioButton.setSelected(true);
-                break;
-            default:
-                break;
+        case AT_CARET:
+            atCaretRadioButton.setSelected(true);
+            break;
+        case AT_THE_END_OF_A_CLASS:
+            atEndOfClassRadioButton.setSelected(true);
+            break;
+        default:
+            break;
         }
 
         codeTemplate.pipeline.forEach(this::addMemberSelection);
@@ -102,12 +123,12 @@ public class TemplateEditPane {
 
     private static int findMaxStepPostfix(List<SelectionPane> pipelinePanes, String type) {
         return pipelinePanes.stream()
-                .filter(p -> p.type().equals(type))
-                .map(SelectionPane::postfix)
-                .filter(str -> str.matches("\\d+"))
-                .map(Integer::valueOf)
-                .max(Comparator.naturalOrder())
-                .orElse(0);
+                            .filter(p -> p.type().equals(type))
+                            .map(SelectionPane::postfix)
+                            .filter(str -> str.matches("\\d+"))
+                            .map(Integer::valueOf)
+                            .max(Comparator.naturalOrder())
+                            .orElse(0);
     }
 
     private void addMemberSelection(PipelineStep step) {
@@ -130,11 +151,10 @@ public class TemplateEditPane {
     private void addVmEditor(String template) {
         EditorFactory factory = EditorFactory.getInstance();
         Document velocityTemplate = factory.createDocument(template);
-        editor = factory.createEditor(velocityTemplate, null, FileTypeManager.getInstance()
-                .getFileTypeByExtension("vm"), false);
+        editor = factory.createEditor(velocityTemplate, null, FileTypeManager.getInstance().getFileTypeByExtension("vm"), false);
         GridConstraints constraints = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST,
-                GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW,
-                GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(0, 0), null, 0, true);
+            GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW,
+            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(0, 0), null, 0, true);
 
         editorPane.add(editor.getComponent(), constraints);
     }
@@ -198,6 +218,8 @@ public class TemplateEditPane {
     public boolean alwaysPromptForPackage() {
         return this.alwaysPromptForPackageCheckBox.isSelected();
     }
+
+    @Override
     public String toString() {
         return this.name();
     }

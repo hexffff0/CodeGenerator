@@ -30,7 +30,9 @@ public class CodeGeneratorGroup extends ActionGroup implements DumbAware {
         return false;
     }
 
-    @NotNull @Override public AnAction[] getChildren(@Nullable AnActionEvent anActionEvent) {
+    @NotNull
+    @Override
+    public AnAction[] getChildren(@Nullable AnActionEvent anActionEvent) {
         if (anActionEvent == null) {
             return AnAction.EMPTY_ARRAY;
         }

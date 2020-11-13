@@ -87,7 +87,8 @@ public class CodeGeneratorAction extends AnAction {
         presentation.setEnabled(true);
     }
 
-    @Override public void actionPerformed(AnActionEvent e) {
+    @Override
+    public void actionPerformed(AnActionEvent e) {
         final CodeTemplate codeTemplate = settings.getCodeTemplate(templateKey).orElseThrow(IllegalStateException::new);
         Project project = e.getProject();
         assert project != null;
