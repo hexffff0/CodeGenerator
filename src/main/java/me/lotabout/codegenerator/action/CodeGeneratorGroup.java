@@ -5,6 +5,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -39,7 +40,7 @@ public class CodeGeneratorGroup extends ActionGroup implements DumbAware {
             return AnAction.EMPTY_ARRAY;
         }
 
-        PsiFile file = anActionEvent.getDataContext().getData(DataKeys.PSI_FILE);
+        PsiFile file = anActionEvent.getDataContext().getData(CommonDataKeys.PSI_FILE);
         if (file == null) {
             return AnAction.EMPTY_ARRAY;
         }
