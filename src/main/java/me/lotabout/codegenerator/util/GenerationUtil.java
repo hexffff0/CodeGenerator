@@ -121,14 +121,19 @@ public class GenerationUtil {
                 vc.put(paramName, contextMap.get(paramName));
             }
 
-            if (logger.isDebugEnabled()) logger.debug("Velocity Macro:\n" + templateMacro);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Velocity Macro:\n" + templateMacro);
+            }
 
             // velocity
             VelocityEngine velocity = VelocityFactory.getVelocityEngine();
-            logger.debug("Executing velocity +++ START +++");
+            if (logger.isDebugEnabled()) {
+                logger.debug("Executing velocity +++ START +++");
+            }
             velocity.evaluate(vc, sw, GenerationUtil.class.getName(), templateMacro);
-            logger.debug("Executing velocity +++ END +++");
-
+            if (logger.isDebugEnabled()) {
+                logger.debug("Executing velocity +++ END +++");
+            }
             if (outputContext != null) {
                 for (Object key : vc.getKeys()) {
                     if (key instanceof String) {

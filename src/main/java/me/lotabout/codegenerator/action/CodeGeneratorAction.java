@@ -94,8 +94,7 @@ public class CodeGeneratorAction extends AnAction {
         assert project != null;
 
         PsiFile file = e.getDataContext().getData(DataKeys.PSI_FILE);
-        assert file != null && file instanceof PsiJavaFile;
-
+        assert file instanceof PsiJavaFile;
         PsiJavaFile javaFile = (PsiJavaFile)file;
 
         Editor editor = e.getDataContext().getData(DataKeys.EDITOR);
@@ -114,10 +113,9 @@ public class CodeGeneratorAction extends AnAction {
             assert editor != null;
             PsiClass clazz = getSubjectClass(editor, javaFile);
             if (clazz == null) {
-                HintManager.getInstance().showErrorHint(editor, "no parent class found for current cursor position");
+                HintManager.getInstance().showErrorHint(editor, "No parent class found for current cursor position");
                 return;
             }
-
             JavaBodyWorker.execute(codeTemplate, clazz, editor, contextMap);
             break;
         case "caret":
@@ -131,8 +129,9 @@ public class CodeGeneratorAction extends AnAction {
 
     private Map<String, Object> executePipeline(@NotNull CodeTemplate codeTemplate, @NotNull final PsiJavaFile file, final Editor editor) {
         final Project project = file.getProject();
-        logger.debug("+++ executePipeline - START +++");
+
         if (logger.isDebugEnabled()) {
+            logger.debug("+++ executePipeline - START +++");
             logger.debug("Current project " + project.getName());
         }
 
@@ -150,7 +149,10 @@ public class CodeGeneratorAction extends AnAction {
             contextMap.put("parentMethod", EntryFactory.of(parentMethod));
         }
 
-        logger.debug("Select member/class through pipeline");
+        if (logger.isDebugEnabled()) {
+            logger.debug("Select member/class through pipeline");
+        }
+
         for (PipelineStep step: codeTemplate.pipeline) {
             if (!step.enabled()) continue;
             switch (step.type()) {
@@ -198,7 +200,9 @@ public class CodeGeneratorAction extends AnAction {
         Project project = file.getProject();
         try {
             String className = GenerationUtil.velocityEvaluate(project, contextMap, contextMap, initialClassNameTemplate);
-            if (logger.isDebugEnabled()) logger.debug("Initial class name for class selection is" + className);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Initial class name for class selection is" + className);
+            }
 
             PsiClass initialClass = null;
             if (!StringUtils.isEmpty(className)) {
@@ -206,7 +210,9 @@ public class CodeGeneratorAction extends AnAction {
             }
 
             if (initialClass == null) {
-                if (logger.isDebugEnabled()) logger.debug("could not found initialClass" + className);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("could not found initialClass" + className);
+                }
                 initialClass = file.getClasses().length > 0 ? file.getClasses()[0] : null;
             }
 
