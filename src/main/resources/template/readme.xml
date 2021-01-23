@@ -3,7 +3,7 @@
     <templates>
         <templates version="1.3">
             <id>26838331-5f44-406c-a7f8-57df74eb084f</id>
-            <name>HUESerialization</name>
+            <name>readme</name>
             <fileNamePattern>.*\.java$</fileNamePattern>
             <type>body</type>
             <enabled>true</enabled>

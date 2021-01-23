@@ -56,7 +56,7 @@ public class JavaClassWorker {
 
         // generate the content of the class
 
-        final String content = GenerationUtil.velocityEvaluate(project, context, null, codeTemplate.template);
+        String content = GenerationUtil.parseCodeTemplate(codeTemplate, context);
         if (logger.isDebugEnabled()) logger.debug("Method body generated from Velocity:\n" + content);
 
         final String selectedPackage = selectedFile.getPackageName();

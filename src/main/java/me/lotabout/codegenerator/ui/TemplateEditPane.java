@@ -150,8 +150,8 @@ public class TemplateEditPane {
 
     private void addVmEditor(String template) {
         EditorFactory factory = EditorFactory.getInstance();
-        Document velocityTemplate = factory.createDocument(template);
-        editor = factory.createEditor(velocityTemplate, null, FileTypeManager.getInstance().getFileTypeByExtension("vm"), false);
+        Document javaTemplate = factory.createDocument(template);
+        editor = factory.createEditor(javaTemplate, null, FileTypeManager.getInstance().getFileTypeByExtension("java"), false);
         GridConstraints constraints = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST,
             GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW,
             GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(0, 0), null, 0, true);

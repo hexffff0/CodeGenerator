@@ -13,6 +13,10 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.NameUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.util.PathUtil;
+import me.lotabout.codegenerator.config.CodeTemplate;
+import me.lotabout.codegenerator.ext.ClassTemplate;
+import me.lotabout.codegenerator.worker.JavaCaretWorker;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +27,15 @@ import org.jetbrains.java.generate.exception.GenerateCodeException;
 import org.jetbrains.java.generate.exception.PluginException;
 import org.jetbrains.java.generate.psi.PsiAdapter;
 import org.jetbrains.java.generate.velocity.VelocityFactory;
+import org.mdkt.compiler.InMemoryJavaCompiler;
 
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class GenerationUtil {
+
     private static final Logger logger = Logger.getInstance("#" + GenerationUtil.class.getName());
 
     /**
@@ -123,13 +130,9 @@ public class GenerationUtil {
 
             if (logger.isDebugEnabled()) {
                 logger.debug("Velocity Macro:\n" + templateMacro);
-            }
-
-            // velocity
-            VelocityEngine velocity = VelocityFactory.getVelocityEngine();
-            if (logger.isDebugEnabled()) {
                 logger.debug("Executing velocity +++ START +++");
             }
+            VelocityEngine velocity = VelocityFactory.getVelocityEngine();
             velocity.evaluate(vc, sw, GenerationUtil.class.getName(), templateMacro);
             if (logger.isDebugEnabled()) {
                 logger.debug("Executing velocity +++ END +++");
@@ -218,4 +221,47 @@ public class GenerationUtil {
         return Arrays.stream(psiClass.getTypeParameters()).map(PsiNamedElement::getName).collect(Collectors.toList());
     }
 
+    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
+        try {
+            InMemoryJavaCompiler jc = InMemoryJavaCompiler.newInstance();
+            jc.useParentClassLoader(JavaCaretWorker.class.getClassLoader());
+            jc.useOptions("-classpath", parseDependenceClassPath(codeTemplate.template));
+
+            Class<?> clazz = jc.compile(ClassTemplate.CLASS_NAME, codeTemplate.template);
+            Object obj = clazz.newInstance();
+            Method method = clazz.getDeclaredMethod("build", Map.class);
+            String content = ((String) method.invoke(obj, context));
+            logger.error("Method body generated: " + content);
+            return content;
+        } catch (Exception e) {
+            logger.error(e);
+            return null;
+        }
+    }
+
+    private static String parseDependenceClassPath(String sourceCode) {
+        String[] lines = sourceCode.split(System.lineSeparator());
+        Set<String> jarPaths = Arrays.stream(lines)
+                                     .parallel()
+                                     .map(String::trim)
+                                     .filter(line -> line.startsWith("import"))
+                                     .map(line -> line.replace("import", ""))
+                                     .map(line -> line.replace(";", ""))
+                                     .map(String::trim)
+                                     .filter(fullClassName -> (!fullClassName.startsWith("java") && !fullClassName.endsWith("*")))
+                                     .distinct()
+                                     .map(fullClassName -> {
+                                         try {
+                                             return Class.forName(fullClassName);
+                                         } catch (ClassNotFoundException e) {
+                                             e.printStackTrace();
+                                             throw new RuntimeException("cannot find class " + fullClassName);
+                                         }
+                                     })
+                                     .map(PathUtil::getJarPathForClass)
+                                     .collect(Collectors.toSet());
+
+        jarPaths.add(System.getProperty("java.class.path"));
+        return String.join(":", jarPaths);
+    }
 }
