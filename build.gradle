@@ -20,6 +20,7 @@ dependencies {
 intellij {
     plugins = ['java']
     version '2020.2.2'
+    intellij.updateSinceUntilBuild false
 }
 
 java{
