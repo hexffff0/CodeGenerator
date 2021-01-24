@@ -71,7 +71,7 @@ public class CodeTemplate {
     static {
         String default_template;
         try {
-            default_template = FileUtil.loadTextAndClose(CodeTemplate.class.getResourceAsStream("/template/default.vm"));
+            default_template = FileUtil.loadTextAndClose(CodeTemplate.class.getResourceAsStream("/template/default.java"));
         } catch (IOException e) {
             default_template = "";
             e.printStackTrace();

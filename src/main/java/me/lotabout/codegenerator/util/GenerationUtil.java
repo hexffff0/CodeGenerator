@@ -1,22 +1,19 @@
 package me.lotabout.codegenerator.util;
 
-import com.intellij.codeInsight.generation.PsiElementClassMember;
-import com.intellij.codeInsight.generation.PsiFieldMember;
-import com.intellij.codeInsight.generation.PsiMethodMember;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.psi.codeStyle.NameUtil;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.util.PathUtil;
-import me.lotabout.codegenerator.config.CodeTemplate;
-import me.lotabout.codegenerator.ext.ClassTemplate;
-import me.lotabout.codegenerator.worker.JavaCaretWorker;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.jetbrains.annotations.NotNull;
@@ -25,24 +22,45 @@ import org.jetbrains.java.generate.element.ElementComparator;
 import org.jetbrains.java.generate.element.GenerationHelper;
 import org.jetbrains.java.generate.exception.GenerateCodeException;
 import org.jetbrains.java.generate.exception.PluginException;
-import org.jetbrains.java.generate.psi.PsiAdapter;
 import org.jetbrains.java.generate.velocity.VelocityFactory;
 import org.mdkt.compiler.InMemoryJavaCompiler;
-
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.intellij.codeInsight.generation.PsiElementClassMember;
+import com.intellij.codeInsight.generation.PsiFieldMember;
+import com.intellij.codeInsight.generation.PsiMethodMember;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiImportList;
+import com.intellij.psi.PsiImportStatement;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.codeStyle.NameUtil;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.util.PathUtil;
+import me.lotabout.codegenerator.config.CodeTemplate;
+import me.lotabout.codegenerator.ext.ClassTemplate;
 
 public class GenerationUtil {
 
     private static final Logger logger = Logger.getInstance("#" + GenerationUtil.class.getName());
 
+    private static ClassLoader classLoader = GenerationUtil.class.getClassLoader();
+
     /**
      * Combines the two lists into one list of members.
      *
-     * @param filteredFields  fields to be included in the dialog
+     * @param filteredFields fields to be included in the dialog
      * @param filteredMethods methods to be included in the dialog
+     *
      * @return the combined list
      */
     public static PsiElementClassMember[] combineToClassMemberList(PsiField[] filteredFields, PsiMethod[] filteredMethods) {
@@ -102,10 +120,10 @@ public class GenerationUtil {
     }
 
     public static String velocityEvaluate(
-            @NotNull Project project,
-            @NotNull Map<String, Object> contextMap,
-            Map<String, Object> outputContext,
-            String templateMacro) throws GenerateCodeException {
+        @NotNull Project project,
+        @NotNull Map<String, Object> contextMap,
+        Map<String, Object> outputContext,
+        String templateMacro) throws GenerateCodeException {
         if (templateMacro == null) {
             return null;
         }
@@ -140,27 +158,25 @@ public class GenerationUtil {
             if (outputContext != null) {
                 for (Object key : vc.getKeys()) {
                     if (key instanceof String) {
-                    outputContext.put((String) key, vc.get((String) key));
+                        outputContext.put((String) key, vc.get((String) key));
                     }
                 }
             }
-        }
-        catch (ProcessCanceledException e) {
+        } catch (ProcessCanceledException e) {
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new GenerateCodeException("Error in Velocity code generator", e);
         }
 
         return StringUtil.convertLineSeparators(sw.getBuffer().toString());
     }
 
-
     /**
      * Handles any exception during the executing on this plugin.
      *
      * @param project PSI project
-     * @param e       the caused exception.
+     * @param e the caused exception.
+     *
      * @throws RuntimeException is thrown for severe exceptions
      */
     public static void handleException(Project project, Exception e) throws RuntimeException {
@@ -169,42 +185,47 @@ public class GenerationUtil {
         if (e instanceof GenerateCodeException) {
             // code generation error - display velocity error in error dialog so user can identify problem quicker
             Messages.showMessageDialog(project,
-                    "Velocity error generating code - see IDEA log for more details (stacktrace should be in idea.log):\n" +
-                            e.getMessage(), "Warning", Messages.getWarningIcon());
+                "Velocity error generating code - see IDEA log for more details (stacktrace should be in idea.log):\n" +
+                    e.getMessage(), "Warning", Messages.getWarningIcon());
         } else if (e instanceof PluginException) {
             // plugin related error - could be recoverable.
-            Messages.showMessageDialog(project, "A PluginException was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(), "Warning", Messages.getWarningIcon());
+            Messages.showMessageDialog(project, "A PluginException was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(), "Warning",
+                Messages.getWarningIcon());
         } else if (e instanceof RuntimeException) {
             // unknown error (such as NPE) - not recoverable
-            Messages.showMessageDialog(project, "An unrecoverable exception was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(), "Error", Messages.getErrorIcon());
+            Messages.showMessageDialog(project, "An unrecoverable exception was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(),
+                "Error", Messages.getErrorIcon());
             throw (RuntimeException) e; // throw to make IDEA alert user
         } else {
             // unknown error (such as NPE) - not recoverable
-            Messages.showMessageDialog(project, "An unrecoverable exception was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(), "Error", Messages.getErrorIcon());
+            Messages.showMessageDialog(project, "An unrecoverable exception was thrown while performing the action - see IDEA log for details (stacktrace should be in idea.log):\n" + e.getMessage(),
+                "Error", Messages.getErrorIcon());
             throw new RuntimeException(e); // rethrow as runtime to make IDEA alert user
         }
     }
 
     static List<FieldEntry> getFields(PsiClass clazz) {
         return Arrays.stream(clazz.getFields())
-                    .map(f -> EntryFactory.of(f, false))
-                    .collect(Collectors.toList());
+                     .map(f -> EntryFactory.of(f, false))
+                     .collect(Collectors.toList());
     }
+
     static List<FieldEntry> getAllFields(PsiClass clazz) {
         return Arrays.stream(clazz.getAllFields())
-                .map(f -> EntryFactory.of(f, false))
-                .collect(Collectors.toList());
+                     .map(f -> EntryFactory.of(f, false))
+                     .collect(Collectors.toList());
     }
 
     static List<MethodEntry> getMethods(PsiClass clazz) {
         return Arrays.stream(clazz.getMethods())
-                .map(EntryFactory::of)
-                .collect(Collectors.toList());
+                     .map(EntryFactory::of)
+                     .collect(Collectors.toList());
     }
+
     static List<MethodEntry> getAllMethods(PsiClass clazz) {
         return Arrays.stream(clazz.getAllMethods())
-                .map(EntryFactory::of)
-                .collect(Collectors.toList());
+                     .map(EntryFactory::of)
+                     .collect(Collectors.toList());
     }
 
     static List<String> getImportList(PsiJavaFile javaFile) {
@@ -213,8 +234,8 @@ public class GenerationUtil {
             return new ArrayList<>();
         }
         return Arrays.stream(importList.getImportStatements())
-                .map(PsiImportStatement::getQualifiedName)
-                .collect(Collectors.toList());
+                     .map(PsiImportStatement::getQualifiedName)
+                     .collect(Collectors.toList());
     }
 
     static List<String> getClassTypeParameters(PsiClass psiClass) {
@@ -224,23 +245,25 @@ public class GenerationUtil {
     public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
         try {
             InMemoryJavaCompiler jc = InMemoryJavaCompiler.newInstance();
-            jc.useParentClassLoader(JavaCaretWorker.class.getClassLoader());
-            jc.useOptions("-classpath", parseDependenceClassPath(codeTemplate.template));
+            jc.useParentClassLoader(classLoader);
+            String classPath = parseDependenceClassPath(codeTemplate.template, context);
+            jc.useOptions("-classpath", classPath);
 
             Class<?> clazz = jc.compile(ClassTemplate.CLASS_NAME, codeTemplate.template);
             Object obj = clazz.newInstance();
             Method method = clazz.getDeclaredMethod("build", Map.class);
-            String content = ((String) method.invoke(obj, context));
-            logger.error("Method body generated: " + content);
-            return content;
+            return ((String) method.invoke(obj, context));
         } catch (Exception e) {
             logger.error(e);
             return null;
         }
     }
 
-    private static String parseDependenceClassPath(String sourceCode) {
+    private static String parseDependenceClassPath(String sourceCode, Map<String, Object> context) {
         String[] lines = sourceCode.split(System.lineSeparator());
+        if (lines.length == 0) {
+            return null;
+        }
         Set<String> jarPaths = Arrays.stream(lines)
                                      .parallel()
                                      .map(String::trim)
@@ -261,7 +284,34 @@ public class GenerationUtil {
                                      .map(PathUtil::getJarPathForClass)
                                      .collect(Collectors.toSet());
 
+        context.values()
+               .stream()
+               .filter(Objects::nonNull)
+               .forEach(obj -> jarPaths.add(obj.getClass().getName()));
         jarPaths.add(System.getProperty("java.class.path"));
+
+        parseThirdPartLib(lines[0], jarPaths);
+
         return String.join(":", jarPaths);
+    }
+
+    private static void parseThirdPartLib(String firstLine, Set<String> jarPaths) {
+        if (firstLine.contains("libPath=")
+            && firstLine.split("=").length == 2) {
+            String libPaths = firstLine.split("=")[1];
+            for (String libPath : libPaths.split(":")) {
+                try {
+                    List<String> lib = Files.list(Paths.get(libPath))
+                                            .map(Path::getFileName)
+                                            .map(Path::toString)
+                                            .filter(fileName->fileName.endsWith(".jar"))
+                                            .map(fileName -> libPath + fileName)
+                                            .collect(Collectors.toList());
+                    jarPaths.addAll(lib);
+                } catch (IOException e) {
+                    logger.error(e);
+                }
+            }
+        }
     }
 }
