@@ -28,6 +28,9 @@ import org.jetbrains.java.generate.exception.PluginException;
 import org.jetbrains.java.generate.velocity.VelocityFactory;
 import org.mdkt.compiler.InMemoryJavaCompiler;
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.expr.Name;
 import com.google.common.collect.Maps;
 import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
@@ -303,39 +306,51 @@ public class GenerationUtil {
     };
 
     private static String parseDependenceClassPath(String sourceCode, Map<String, Object> context) {
-        String[] lines = sourceCode.split(System.lineSeparator());
-        if (lines.length == 0) {
-            return null;
-        }
-        Set<String> jarPaths = Arrays.stream(lines)
-                                     .parallel()
-                                     .map(String::trim)
-                                     .filter(line -> line.startsWith("import"))
-                                     .map(line -> line.replace("import", ""))
-                                     .map(line -> line.replace(";", ""))
-                                     .map(String::trim)
-                                     .filter(fullClassName -> (!fullClassName.startsWith("java") && !fullClassName.endsWith("*")))
-                                     .distinct()
-                                     .map(fullClassName -> {
-                                         try {
-                                             return Class.forName(fullClassName);
-                                         } catch (ClassNotFoundException e) {
-                                             e.printStackTrace();
-                                             throw new RuntimeException("cannot find class " + fullClassName);
-                                         }
-                                     })
-                                     .map(PathUtil::getJarPathForClass)
-                                     .collect(Collectors.toSet());
+        CompilationUnit cu = StaticJavaParser.parse(sourceCode);
+        Set<String> jarPaths = cu.getImports()
+          .parallelStream()
+          .map(ImportDeclaration::getName)
+          .map(Name::asString)
+          .filter(fullClassName->!fullClassName.startsWith("java"))
+          .distinct()
+          .map(fullClassName -> {
+              try {
+                  return Class.forName(fullClassName);
+              } catch (ClassNotFoundException e) {
+                  Class<?> clazz = tryInnerClass(fullClassName);
+                  if (clazz == null) {
+                      logger.error("cannot find class " + fullClassName);
+                  }
+                  return clazz;
+              }
+          })
+          .filter(Objects::nonNull)
+          .map(PathUtil::getJarPathForClass)
+          .collect(Collectors.toSet());
 
         context.values()
                .stream()
                .filter(Objects::nonNull)
                .forEach(obj -> jarPaths.add(obj.getClass().getName()));
         jarPaths.add(System.getProperty("java.class.path"));
-
-        parseThirdPartLib(lines[0], jarPaths);
+        parseThirdPartLib(sourceCode.split(System.lineSeparator())[0], jarPaths);
 
         return String.join(":", jarPaths);
+    }
+
+    private static Class<?> tryInnerClass(String fullClassName) {
+        int idx = fullClassName.lastIndexOf(".");
+        if (idx > 0) {
+            char[] chars = fullClassName.toCharArray();
+            chars[idx] = '$';
+            String innerClassName = new String(chars);
+            try {
+                return Class.forName(innerClassName);
+            } catch (ClassNotFoundException e) {
+                return tryInnerClass(innerClassName);
+            }
+        }
+        return null;
     }
 
     private static void parseThirdPartLib(String firstLine, Set<String> jarPaths) {

@@ -10,22 +10,36 @@
 
 package me.lotabout.codegenerator.ext;
 
-import me.lotabout.codegenerator.ext.Doc;
-import java.util.List;
 import java.util.Map;
-import org.apache.commons.collections.CollectionUtils;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier.Keyword;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.PrettyPrinterConfiguration;
+import me.lotabout.codegenerator.ext.Doc;
 public class Template {
 
     @SuppressWarnings("unchecked")
     public String build(Map<String, Object> context){
-        return Optional.ofNullable(context.get("methods"))
-                .map(obj -> (List<?>) obj)
-                .filter(CollectionUtils::isNotEmpty)
-                .map(list -> list.get(0))
-                .map(obj -> (MethodDeclaration) obj)
-                .map(md -> md.toString(new PrettyPrinterConfiguration()))
-                .orElse("null");
+
+        CompilationUnit cu = (CompilationUnit) context.get("class1");
+        TypeDeclaration<?> td = cu.getTypes().get(0);
+        String className = td.getName().asString();
+
+        MethodDeclaration md = new MethodDeclaration();
+        md.setModifier(Keyword.PUBLIC, true)
+          .setType(className)
+          .setName(className)
+          .addParameter(className, className)
+          .setBody(new BlockStmt().addStatement("return null;"));
+        return md.toString(new PrettyPrinterConfiguration());
     }
+
+    public static void main(String[] args) {
+        CompilationUnit err = StaticJavaParser.parse("illegal text");
+        System.err.println(err);
+    }
+
 }
