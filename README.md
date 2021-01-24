@@ -1,7 +1,30 @@
 # CodeGenerator
-An idea-plugin for code generation, support template customization.
 
-// TODO: add demo
+中文说明
+
+An idea-plugin for code generation (modify from [lotabout/CodeGenerator](https://github.com/lotabout/CodeGenerator))
+
+**What changes did i make ?**
+
+The origin plugin allow you to use velocity templates to generate code. I prefer writing Java code to generate code not the velocity templates.
+
+![image-20210124195309301](./doc/pictures/example.png)
+
+This template will copy the method you selected to the cureent caret position.
+
+![image-20210124195545218](/Users/hdr/Coding/Java/CodeGenerator/doc/pictures/example1.png)
+
+![image-20210124195739128](./doc/pictures/example2.png)
+
+![image-20210124195854049](/Users/hdr/Coding/Java/CodeGenerator/doc/pictures/example3.png)
+
+![image-20210124195952945](./doc/pictures/example4.png)
+
+
+
+---
+
+> Below is the doc from [lotabout/CodeGenerator/readme](https://github.com/lotabout/CodeGenerator)
 
 As we know, Intellij had provided useful code generators such as constructors,
 getter/setters, equals, hashCode, overrides and delegates, etc. And Intellij
@@ -15,7 +38,7 @@ Code Generator is here to help. Two types of generation are supported here
 # Installation
 
 1. Search `CodeGenerator` in Idea plugins
-2. Download zip from from [Releases](https://github.com/lotabout/CodeGenerator/releases)
+2. Download zip from from Releases
 
 To install a plugin from the disk in idea:
 

@@ -1,5 +1,6 @@
 package me.lotabout.codegenerator.action;
 
+import com.google.common.collect.Maps;
 import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
 import com.intellij.codeInsight.generation.PsiMethodMember;
@@ -135,7 +136,10 @@ public class CodeGeneratorAction extends AnAction {
             logger.debug("Current project " + project.getName());
         }
 
-        Map<String, Object> contextMap = new HashMap<>();
+        Map<String, Object> contextMap = Maps.newHashMap();
+        contextMap.put("PsiJavaFile", file);
+        contextMap.put("Editor", editor);
+
         PsiClass clazz = getSubjectClass(editor, file);
         if (clazz == null) {
             clazz = buildFakeClassForEmptyFile(file);

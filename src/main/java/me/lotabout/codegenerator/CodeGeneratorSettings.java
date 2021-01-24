@@ -62,7 +62,7 @@ public class CodeGeneratorSettings implements PersistentStateComponent<CodeGener
     private List<CodeTemplate> loadDefaultTemplates() {
         List<CodeTemplate> templates = new ArrayList<>();
         try {
-            templates.addAll(loadTemplates("readme.xml"));
+            templates.addAll(loadTemplates("example.xml"));
         } catch (Exception e) {
             LOGGER.error("loadDefaultTemplates failed", e);
         }
