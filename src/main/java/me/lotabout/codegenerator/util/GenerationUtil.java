@@ -252,8 +252,10 @@ public class GenerationUtil {
 
     // ------------------- Experimental -------------------
 
-    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
-        context = rebuildContext(context);
+    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context , boolean rebuildContext){
+        if (rebuildContext){
+            context = rebuildContext(context);
+        }
         try {
             InMemoryJavaCompiler jc = InMemoryJavaCompiler.newInstance();
             jc.useParentClassLoader(classLoader);
@@ -270,7 +272,11 @@ public class GenerationUtil {
         }
     }
 
-    private static Map<String, Object> rebuildContext(Map<String, Object> context){
+    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
+        return parseCodeTemplate(codeTemplate, context, true);
+    }
+
+    public static Map<String, Object> rebuildContext(Map<String, Object> context){
 
         Map<String, Object> newContext = Maps.newHashMap();
         for (Entry<String, Object> entry : context.entrySet()) {
@@ -307,6 +313,7 @@ public class GenerationUtil {
 
     private static String parseDependenceClassPath(String sourceCode, Map<String, Object> context) {
         CompilationUnit cu = StaticJavaParser.parse(sourceCode);
+        cu.addImport("me.lotabout.codegenerator.ext.Doc");
         Set<String> jarPaths = cu.getImports()
           .parallelStream()
           .map(ImportDeclaration::getName)

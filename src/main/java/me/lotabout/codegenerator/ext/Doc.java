@@ -1,29 +1,18 @@
 package me.lotabout.codegenerator.ext;
 
 /**
- *  Variables Provided (Class Mode)
+ *  context contains object's
  *  -------------------------------
- *  Class mode means you want to create new classes(file).
  *
- *  - ClassName: String     The name spcified by `Target Class Name`
- *  - PackageName: String   The package name specified by `Target Class Name`
- *  - class0: ClassEntry    The class that the action is triggered upon
- *
- *  - class1: ClassEntry    The first selected class, where `1` is the postfix
+ *  - ClassName: <String>     The name specified by `Target Class Name`
+ *  - PackageName: <String>   The package name specified by `Target Class Name`
+ *  - class0: <CompilationUnit>    The class that the action is triggered upon
+ *  - class1: <CompilationUnit>    The first selected class, where `1` is the postfix
  *                          you specify in pipeline
- *    ...
- *
- *  - MemberEntry (FieldEntry/MethodEntry common properties)
- *      - FieldEntry
- *      - MethodEntry
- *
- *  Variables Provided (Body Mode)
- *  -----------------------
- *  - class0: ClassEntry         The current class
- *  - fields: List<FieldEntry>   All selected fields
- *  - methods: List<MethodEntry> All selected methods
- *  - members: List<MemberEntry> selected fields+methods
- *  - parentMethod: MethodEntry  The nearest method that surround the current cursor
+ *  - fields: List<Statement>   All selected fields
+ *  - methods: List<MethodDeclaration> All selected methods
+ *  - members: List<MethodDeclaration  Statement> selected fields+methods
+ *  - parentMethod: <MethodDeclaration>  The nearest method that surround the current cursor
  *
  *  Other feature
  *  -------------

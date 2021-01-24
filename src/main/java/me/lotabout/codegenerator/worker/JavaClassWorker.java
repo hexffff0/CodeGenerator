@@ -56,8 +56,9 @@ public class JavaClassWorker {
 
         // generate the content of the class
 
-        String content = GenerationUtil.parseCodeTemplate(codeTemplate, context);
-        if (logger.isDebugEnabled()) logger.debug("Method body generated from Velocity:\n" + content);
+        context = GenerationUtil.rebuildContext(context);
+        String content = GenerationUtil.parseCodeTemplate(codeTemplate, context, false);
+        if (logger.isDebugEnabled()) logger.debug("Class body generated from Velocity:\n" + content);
 
         final String selectedPackage = selectedFile.getPackageName();
         final String targetPackageName = packageName.equals("") ? selectedPackage : packageName;
@@ -78,7 +79,7 @@ public class JavaClassWorker {
             return;
         }
 
-        final String targetFileName = className + ".java";
+        final String targetFileName = context.getOrDefault("ClassName", "unknown") + ".java";
         final String targetPath = targetPackageDir.getVirtualFile().getPath() + File.separator + targetFileName;
         final VirtualFileManager manager = VirtualFileManager.getInstance();
         final VirtualFile virtualFile = manager.refreshAndFindFileByUrl(VfsUtil.pathToUrl(targetPath));
