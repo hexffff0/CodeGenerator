@@ -1,6 +1,6 @@
 # CodeGenerator
 
-中文说明
+[中文说明](./doc/readme-zh.md)
 
 An idea-plugin for code generation (modify from [lotabout/CodeGenerator](https://github.com/lotabout/CodeGenerator))
 
