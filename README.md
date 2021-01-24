@@ -12,11 +12,11 @@ The origin plugin allow you to use velocity templates to generate code. I prefer
 
 This template will copy the method you selected to the cureent caret position.
 
-![image-20210124195545218](/Users/hdr/Coding/Java/CodeGenerator/doc/pictures/example1.png)
+![image-20210124195545218](./doc/pictures/example1.png)
 
 ![image-20210124195739128](./doc/pictures/example2.png)
 
-![image-20210124195854049](/Users/hdr/Coding/Java/CodeGenerator/doc/pictures/example3.png)
+![image-20210124195854049](./doc/pictures/example3.png)
 
 ![image-20210124195952945](./doc/pictures/example4.png)
 
