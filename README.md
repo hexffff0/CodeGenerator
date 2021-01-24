@@ -2,15 +2,15 @@
 
 [中文说明](./doc/readme-zh.md)
 
-An idea-plugin for code generation (modify from [lotabout/CodeGenerator](https://github.com/lotabout/CodeGenerator))
+An IDEA-plugin for code generation (modify from [lotabout/CodeGenerator](https://github.com/lotabout/CodeGenerator))
 
-**What changes did i make ?**
+**What changes did I make ?**
 
-The origin plugin allow you to use velocity templates to generate code. I prefer writing Java code to generate code not the velocity templates.
+The original plugin allows you to use velocity templates to generate code. I prefer writing Java code to generate code than the velocity templates.
 
 ![image-20210124195309301](./doc/pictures/example.png)
 
-This template will copy the method you selected to the cureent caret position.
+This template will copy the method you selected to the current caret position.
 
 ![image-20210124195545218](./doc/pictures/example1.png)
 
@@ -26,8 +26,8 @@ This template will copy the method you selected to the cureent caret position.
 
 > Below is the doc from [lotabout/CodeGenerator/readme](https://github.com/lotabout/CodeGenerator)
 
-As we know, Intellij had provided useful code generators such as constructors,
-getter/setters, equals, hashCode, overrides and delegates, etc. And Intellij
+As we know, IntelliJ provides useful code generators such as constructors,
+getter/setters, equals, hashCode, overrides and delegates, etc. And IntelliJ
 allows us to apply customized velocity templates for each generator. But we
 cannot add our own generators.
 
@@ -37,10 +37,10 @@ Code Generator is here to help. Two types of generation are supported here
 
 # Installation
 
-1. Search `CodeGenerator` in Idea plugins
+1. Search `CodeGenerator` in IDEA plugins
 2. Download zip from from Releases
 
-To install a plugin from the disk in idea:
+To install a plugin from the disk in IDEA:
 
 1. Open the `Settings/Preferences` dialog box and select `Plugins` on the left pane.
 2. On the right pane of the dialog, click the `Install plugin from disk` button.
@@ -55,17 +55,17 @@ To install a plugin from the disk in idea:
 2. Right click on your java file, Select `Generate > CodeGenerator > [name of
    your generator]` to run the generator.
 
-According to the settings of your generator, there might be dialogs show up
-asking to select members or classes that's required by your generator.
+According to the settings of your generator, there might be dialogs
+asking you to select members or classes required by your generator.
 
 # Pipeline for Generators
 
-Say we want to create a template for generating getters/setters, how will user
-use your template? An example(the default intellij implementation) is:
+Say we want to create a template for generating getters/setters, how will the
+user use your template? An example(the default IntelliJ implementation) is:
 
-1. A dialog show up listing all the fields that hadn't implement
+1. A dialog shows up listing all the fields that doesn't have
    getters/setters yet.
-2. User select the members.
+2. The user selects the members.
 3. The code is generated using the getter/setter template.
 
 Thus, as a template creator, we need to:
@@ -75,7 +75,7 @@ Thus, as a template creator, we need to:
 Here we call it a `pipeline` for generators. Currently two types of user
 action are supported:
 
-1. Member selection: generator user can select fields/methods.
+1. Member selection: generator user can select fields/methods;
 2. Class selection: generator user can select a class.
 
 Another example is: you might want to create templates that generate
@@ -83,7 +83,7 @@ convertors between two classes, so that you want the user to select the target
 class to convert to.
 
 In CodeGenerator, you can create a pipeline with several steps, CodeGenerator
-will execute the steps sequencially to collect the context variables. Finally
+will execute the steps sequencially to collect the context variables and finally
 generate the code use the template.
 
 ![pipeline](https://user-images.githubusercontent.com/1527040/31721412-e9efcc38-b3de-11e7-99cd-44e3dd37b947.png)
@@ -94,14 +94,14 @@ generate the code use the template.
 
 Templates varies on what members it allows for selection, for example:
 
-- Getters/Setters generator might want user to select only the fields that
+- Getters/Setters generator might want the user to select only the fields that
     have no getters/setters implemented.
-- Delegate generators might want user to select the methods that belongs to
+- Delegate generators might want the user to select the methods that belong to
     the field or its super classes.
 
 Thus CodeGenerator allows generator creators to provide the members to select:
 
-- set `availableMembers` to provide the members to select.
+- set `availableMembers` to provide the members to select;
 - set `selectedMembers` to select the members initially, not setting it means
     select all available members.
 
@@ -115,7 +115,7 @@ Here is an example of the context variables:
 
 ![context-of-pipeline](https://user-images.githubusercontent.com/1527040/31721898-3629df8e-b3e0-11e7-8ac2-ca75680356cd.png)
 
-Note in the begining, the `class0` variable refers to the class entry where
+Note in the beginning, the `class0` variable refers to the class entry where
 user starts code generation.
 
 ## Class Selection
@@ -125,9 +125,9 @@ user starts code generation.
 Class selection is much simpler that template creator could specify the
 initial class to select.
 
-# Thanks to
+# Acknowledgment
 - [CodeMaker](https://raw.githubusercontent.com/x-hansong/CodeMaker): where
-    the idea and part of code comes from.
+    the idea and a part of code comes from.
 - [generate-tostring](https://github.com/JetBrains/intellij-community/tree/master/plugins/generate-tostring):
-  Offical toString generator. Part of the code comes from it.
+  Official toString generator. A part of the code comes from it.
 
