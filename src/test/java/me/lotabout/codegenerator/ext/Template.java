@@ -9,23 +9,23 @@
 
 
 package me.lotabout.codegenerator.ext;
+
+import me.lotabout.codegenerator.ext.Doc;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.commons.collections.CollectionUtils;
-import com.intellij.psi.PsiMethod;
-import me.lotabout.codegenerator.util.MethodEntry;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.printer.PrettyPrinterConfiguration;
 public class Template {
 
     @SuppressWarnings("unchecked")
     public String build(Map<String, Object> context){
         return Optional.ofNullable(context.get("methods"))
-                       .map(obj -> (List<MethodEntry>) obj)
-                       .filter(CollectionUtils::isNotEmpty)
-                       .map(list -> list.get(0))
-                       .map(MethodEntry::getRaw)
-                       .map(PsiMethod::getText)
-                       .orElse("");
+                .map(obj -> (List<?>) obj)
+                .filter(CollectionUtils::isNotEmpty)
+                .map(list -> list.get(0))
+                .map(obj -> (MethodDeclaration) obj)
+                .map(md -> md.toString(new PrettyPrinterConfiguration()))
+                .orElse("null");
     }
-
 }

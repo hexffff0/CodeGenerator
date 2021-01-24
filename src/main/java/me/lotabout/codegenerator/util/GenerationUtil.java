@@ -8,11 +8,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -24,6 +27,8 @@ import org.jetbrains.java.generate.exception.GenerateCodeException;
 import org.jetbrains.java.generate.exception.PluginException;
 import org.jetbrains.java.generate.velocity.VelocityFactory;
 import org.mdkt.compiler.InMemoryJavaCompiler;
+import com.github.javaparser.StaticJavaParser;
+import com.google.common.collect.Maps;
 import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
 import com.intellij.codeInsight.generation.PsiMethodMember;
@@ -242,7 +247,10 @@ public class GenerationUtil {
         return Arrays.stream(psiClass.getTypeParameters()).map(PsiNamedElement::getName).collect(Collectors.toList());
     }
 
+    // ------------------- Experimental -------------------
+
     public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
+        context = rebuildContext(context);
         try {
             InMemoryJavaCompiler jc = InMemoryJavaCompiler.newInstance();
             jc.useParentClassLoader(classLoader);
@@ -258,6 +266,41 @@ public class GenerationUtil {
             return null;
         }
     }
+
+    private static Map<String, Object> rebuildContext(Map<String, Object> context){
+
+        Map<String, Object> newContext = Maps.newHashMap();
+        for (Entry<String, Object> entry : context.entrySet()) {
+            newContext.put(entry.getKey(), GET_VALUE_FUNC.apply(entry));
+        }
+        return newContext;
+    }
+
+    private static final Function<Entry<String, Object>, Object> GET_VALUE_FUNC = (entry) -> {
+        Object obj = entry.getValue();
+        if (obj == null) {
+            return null;
+        }
+        if (obj instanceof ClassEntry) {
+            return StaticJavaParser.parse(((ClassEntry) obj).getRaw().getText());
+        } else if (obj instanceof MethodEntry) {
+            return StaticJavaParser.parseMethodDeclaration(((MethodEntry) obj).getRaw().getText());
+        } else if (obj instanceof FieldEntry) {
+            return StaticJavaParser.parseStatement(((FieldEntry) obj).getRaw().getText());
+        } else if (obj instanceof Collection<?>) {
+            Collection<?> memberList = (Collection<?>) obj;
+            return memberList.stream().map(member -> {
+                if (member instanceof MethodEntry) {
+                    return StaticJavaParser.parseMethodDeclaration(((MethodEntry) member).getRaw().getText());
+                } else if (member instanceof FieldEntry) {
+                    return StaticJavaParser.parseStatement(((FieldEntry) member).getRaw().getText());
+                } else {
+                    return member;
+                }
+            }).collect(Collectors.toList());
+        }
+        return obj;
+    };
 
     private static String parseDependenceClassPath(String sourceCode, Map<String, Object> context) {
         String[] lines = sourceCode.split(System.lineSeparator());
