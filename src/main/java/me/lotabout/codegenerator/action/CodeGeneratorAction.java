@@ -158,16 +158,22 @@ public class CodeGeneratorAction extends AnAction {
         }
 
         for (PipelineStep step: codeTemplate.pipeline) {
-            if (!step.enabled()) continue;
+            if (!step.enabled()) {
+                continue;
+            }
             switch (step.type()) {
             case "class-selection":
                 PsiClass selectedClass = selectClass(file, (ClassSelectionConfig)step, contextMap);
-                if (selectedClass == null) return null;
+                if (selectedClass == null) {
+                    return null;
+                }
                 contextMap.put("class"+step.postfix(), EntryFactory.of(selectedClass));
                 break;
             case "member-selection":
                 List<PsiMember> selectedMembers = selectMember(file, (MemberSelectionConfig)step, contextMap);
-                if (selectedMembers == null) return null;
+                if (selectedMembers == null) {
+                    return null;
+                }
                 GenerationUtil.insertMembersToContext(selectedMembers,
                         Collections.emptyList(),
                         contextMap,
@@ -265,11 +271,19 @@ public class CodeGeneratorAction extends AnAction {
         }
 
         final MemberChooser<PsiElementClassMember> chooser =
-                new MemberChooser<PsiElementClassMember>(dialogMembers, config.allowEmptySelection, config.allowMultiSelection, project, PsiUtil.isLanguageLevel5OrHigher(file), new JPanel(new BorderLayout())) {
-                    @Nullable @Override protected String getHelpId() {
-                        return "editing.altInsert.codegenerator";
-                    }
-                };
+            new MemberChooser<PsiElementClassMember>(dialogMembers,
+                config.allowEmptySelection,
+                config.allowMultiSelection,
+                project,
+                PsiUtil.isLanguageLevel5OrHigher(file),
+                new JPanel(new BorderLayout())) {
+
+                @Nullable
+                @Override
+                protected String getHelpId() {
+                    return "editing.altInsert.codegenerator";
+                }
+            };
         chooser.setTitle("Selection Fields for Code Generation");
         chooser.setCopyJavadocVisible(false);
         chooser.selectElements(membersSelected);
