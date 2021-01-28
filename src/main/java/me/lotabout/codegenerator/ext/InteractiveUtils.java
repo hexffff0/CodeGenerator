@@ -15,26 +15,36 @@ import com.intellij.codeInsight.generation.GenerationInfo;
 import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
 import com.intellij.codeInsight.generation.PsiMethodMember;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.util.MemberChooser;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.ide.util.TreeFileChooser;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.util.IncorrectOperationException;
+import me.lotabout.codegenerator.util.GenerationUtil;
 /**
  * Utility for interact with Idea
  *
@@ -139,6 +149,13 @@ public class InteractiveUtils {
             .collect(Collectors.toList());
     }
 
+    public static String getSelectedText(@NotNull Editor editor) {
+        final SelectionModel selectionModel = editor.getSelectionModel();
+        String text = selectionModel.getSelectedText();
+        selectionModel.removeSelection();
+        return text;
+    }
+
     public static void writeToCaret(String content, @Nullable PsiFile file, @NotNull Editor editor) {
 
         final Project project;
@@ -165,26 +182,59 @@ public class InteractiveUtils {
             }
         });
         selectionModel.removeSelection();
+        if (file != null) {
+            reformatCode(file);
+        }
     }
 
-    public static void writeToEndOfClass(String content, @NotNull PsiFile file, @NotNull Editor editor) {
-        Project project = file.getProject();
-        int offset = file.getTextRange().getEndOffset() - 1;
+    public static void writeToEndOfClass(String content, @NotNull PsiClass psiClass, @NotNull Editor editor) {
+        Project project = psiClass.getProject();
+        int offset = psiClass.getTextRange().getEndOffset() - 1;
         Document document = editor.getDocument();
         WriteCommandAction.runWriteCommandAction(project, () -> {
-            document.replaceString(offset, offset, content);
+            document.insertString(offset, content);
             PsiDocumentManager.getInstance(project).commitDocument(document);
-            if (file instanceof PsiJavaFile) {
-                JavaCodeStyleManager.getInstance(project).shortenClassReferences(file);
+            if (psiClass instanceof PsiJavaFile) {
+                JavaCodeStyleManager.getInstance(project).shortenClassReferences(psiClass);
             }
         });
+        reformatCode(psiClass);
     }
 
-    public static String getSelectedText(@NotNull Editor editor) {
-        final Document document = editor.getDocument();
-        final SelectionModel selectionModel = editor.getSelectionModel();
-        return selectionModel.getSelectedText();
+    public static void createNewClass(String content, String className, @NotNull PsiDirectory directory) {
+        Project project = directory.getProject();
+
+        if (directory.findFile(className) != null) {
+            logger.info("file " + className + " already exists");
+            return;
+        }
+
+        final PsiFile targetFile = PsiFileFactory.getInstance(project)
+                                                 .createFileFromText(className + ".java", JavaFileType.INSTANCE, content);
+        JavaCodeStyleManager.getInstance(project).shortenClassReferences(targetFile);
+        CodeStyleManager.getInstance(project).reformat(targetFile);
+
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            try {
+                directory.add(targetFile);
+            } catch (Exception e) {
+                logger.error(e);
+                GenerationUtil.handleException(project, e);
+            }
+        });
+
+
     }
 
+    public static void openFileInEditor(@NotNull PsiFile file) {
+        Project project = file.getProject();
+        FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+        ApplicationManager.getApplication()
+                          .invokeLater(() -> fileEditorManager.openFile(file.getVirtualFile(), true, true));
+    }
 
+    public static void reformatCode(PsiElement psiElement) {
+        Project project = psiElement.getProject();
+        CodeStyleManager.getInstance(project).reformat(psiElement);
+    }
 }

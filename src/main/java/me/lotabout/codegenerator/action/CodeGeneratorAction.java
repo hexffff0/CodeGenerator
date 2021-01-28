@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.intellij.codeInsight.generation.PsiElementClassMember;
 import com.intellij.codeInsight.generation.PsiFieldMember;
 import com.intellij.codeInsight.generation.PsiMethodMember;
-import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.util.MemberChooser;
 import com.intellij.ide.util.TreeClassChooser;
@@ -34,9 +33,6 @@ import me.lotabout.codegenerator.config.PipelineStep;
 import me.lotabout.codegenerator.util.EntryFactory;
 import me.lotabout.codegenerator.util.GenerationUtil;
 import me.lotabout.codegenerator.util.MemberEntry;
-import me.lotabout.codegenerator.worker.JavaBodyWorker;
-import me.lotabout.codegenerator.worker.JavaCaretWorker;
-import me.lotabout.codegenerator.worker.JavaClassWorker;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +44,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,40 +84,11 @@ public class CodeGeneratorAction extends AnAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
         final CodeTemplate codeTemplate = settings.getCodeTemplate(templateKey).orElseThrow(IllegalStateException::new);
-        Project project = e.getProject();
-        assert project != null;
-
-        PsiFile file = e.getDataContext().getData(DataKeys.PSI_FILE);
-        assert file instanceof PsiJavaFile;
-        PsiJavaFile javaFile = (PsiJavaFile)file;
-
-        Editor editor = e.getDataContext().getData(DataKeys.EDITOR);
-
-        Map<String, Object> contextMap = executePipeline(codeTemplate, javaFile, editor);
+        Map<String, Object> contextMap = Maps.newHashMap();
         contextMap.put("AnActionEvent", e);
-
-        switch (codeTemplate.type) {
-        case "class":
-            JavaClassWorker.execute(codeTemplate, javaFile, contextMap);
-            break;
-        case "body":
-            assert editor != null;
-            PsiClass clazz = getSubjectClass(editor, javaFile);
-            if (clazz == null) {
-                HintManager.getInstance().showErrorHint(editor, "No parent class found for current cursor position");
-                return;
-            }
-            JavaBodyWorker.execute(codeTemplate, clazz, editor, contextMap);
-            break;
-        case "caret":
-            assert editor != null;
-            JavaCaretWorker.execute(codeTemplate, javaFile, editor, contextMap);
-            break;
-        default:
-            throw new IllegalStateException("template type is not recognized: " + codeTemplate.type);
-        }
+        GenerationUtil.compileAndExecuteCodeTemplate(codeTemplate, contextMap);
     }
 
     private Map<String, Object> executePipeline(@NotNull CodeTemplate codeTemplate, @NotNull final PsiJavaFile file, final Editor editor) {

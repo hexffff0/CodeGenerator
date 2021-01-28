@@ -252,7 +252,8 @@ public class GenerationUtil {
 
     // ------------------- Experimental -------------------
 
-    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context , boolean rebuildContext){
+    @Deprecated
+    public static String compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context , boolean rebuildContext){
         if (rebuildContext){
             context = rebuildContext(context);
         }
@@ -273,8 +274,8 @@ public class GenerationUtil {
         }
     }
 
-    public static String parseCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
-        return parseCodeTemplate(codeTemplate, context, true);
+    public static String compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
+        return compileAndExecuteCodeTemplate(codeTemplate, context, false);
     }
 
     public static Map<String, Object> rebuildContext(Map<String, Object> context){
