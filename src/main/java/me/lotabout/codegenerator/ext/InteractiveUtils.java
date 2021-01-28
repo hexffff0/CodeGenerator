@@ -147,7 +147,7 @@ public class InteractiveUtils {
         } else if (file != null) {
             project = file.getProject();
         }else{
-            logger.error("write action failed, cannot get project from editor or file");
+            logger.error("write action failed, cannot get project from editor and file");
             return;
         }
 
@@ -167,11 +167,24 @@ public class InteractiveUtils {
         selectionModel.removeSelection();
     }
 
-    private static void writeToEOF(String content, @NotNull PsiFile file) {
-        List<GenerationInfo> generationInfoList = new ArrayList<>();
-        // todo
+    public static void writeToEndOfClass(String content, @NotNull PsiFile file, @NotNull Editor editor) {
+        Project project = file.getProject();
         int offset = file.getTextRange().getEndOffset() - 1;
-        GenerateMembersUtil.insertMembersAtOffset(file.getContainingFile(), offset, generationInfoList);
+        Document document = editor.getDocument();
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            document.replaceString(offset, offset, content);
+            PsiDocumentManager.getInstance(project).commitDocument(document);
+            if (file instanceof PsiJavaFile) {
+                JavaCodeStyleManager.getInstance(project).shortenClassReferences(file);
+            }
+        });
     }
+
+    public static String getSelectedText(@NotNull Editor editor) {
+        final Document document = editor.getDocument();
+        final SelectionModel selectionModel = editor.getSelectionModel();
+        return selectionModel.getSelectedText();
+    }
+
 
 }

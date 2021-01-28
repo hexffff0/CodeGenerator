@@ -101,10 +101,7 @@ public class CodeGeneratorAction extends AnAction {
         Editor editor = e.getDataContext().getData(DataKeys.EDITOR);
 
         Map<String, Object> contextMap = executePipeline(codeTemplate, javaFile, editor);
-        if (contextMap == null) {
-            // early return from pipeline
-            return;
-        }
+        contextMap.put("AnActionEvent", e);
 
         switch (codeTemplate.type) {
         case "class":
@@ -129,11 +126,9 @@ public class CodeGeneratorAction extends AnAction {
     }
 
     private Map<String, Object> executePipeline(@NotNull CodeTemplate codeTemplate, @NotNull final PsiJavaFile file, final Editor editor) {
-        final Project project = file.getProject();
-
         if (logger.isDebugEnabled()) {
             logger.debug("+++ executePipeline - START +++");
-            logger.debug("Current project " + project.getName());
+            logger.debug("Current project " + file.getProject());
         }
 
         Map<String, Object> contextMap = Maps.newHashMap();

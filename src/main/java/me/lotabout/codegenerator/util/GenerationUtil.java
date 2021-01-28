@@ -258,6 +258,7 @@ public class GenerationUtil {
         }
         try {
             InMemoryJavaCompiler jc = InMemoryJavaCompiler.newInstance();
+            jc.ignoreWarnings();
             jc.useParentClassLoader(classLoader);
             String classPath = parseDependenceClassPath(codeTemplate.template, context);
             jc.useOptions("-classpath", classPath);
