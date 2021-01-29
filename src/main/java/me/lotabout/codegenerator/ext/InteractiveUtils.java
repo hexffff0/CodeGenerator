@@ -187,10 +187,10 @@ public class InteractiveUtils {
         }
     }
 
-    public static void writeToEndOfClass(String content, @NotNull PsiClass psiClass, @NotNull Editor editor) {
+    public static void writeToEndOfClass(String content, @NotNull PsiClass psiClass) {
         Project project = psiClass.getProject();
         int offset = psiClass.getTextRange().getEndOffset() - 1;
-        Document document = editor.getDocument();
+        Document document = PsiDocumentManager.getInstance(project).getDocument(psiClass.getContainingFile());
         WriteCommandAction.runWriteCommandAction(project, () -> {
             document.insertString(offset, content);
             PsiDocumentManager.getInstance(project).commitDocument(document);
@@ -201,12 +201,12 @@ public class InteractiveUtils {
         reformatCode(psiClass);
     }
 
-    public static void createNewClass(String content, String className, @NotNull PsiDirectory directory) {
+    public static PsiJavaFile createNewClass(String content, String className, @NotNull PsiDirectory directory) {
         Project project = directory.getProject();
 
         if (directory.findFile(className) != null) {
             logger.info("file " + className + " already exists");
-            return;
+            return null;
         }
 
         final PsiFile targetFile = PsiFileFactory.getInstance(project)
@@ -222,8 +222,7 @@ public class InteractiveUtils {
                 GenerationUtil.handleException(project, e);
             }
         });
-
-
+        return ((PsiJavaFile) targetFile);
     }
 
     public static void openFileInEditor(@NotNull PsiFile file) {

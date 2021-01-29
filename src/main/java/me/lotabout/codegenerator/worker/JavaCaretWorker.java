@@ -21,8 +21,9 @@ public class JavaCaretWorker {
     public static void execute(@NotNull CodeTemplate codeTemplate, @NotNull PsiJavaFile file, @NotNull Editor editor, @NotNull Map<String, Object> context) {
         final Project project = file.getProject();
 
-        String content = GenerationUtil.compileAndExecuteCodeTemplate(codeTemplate, context);
+//        String content = GenerationUtil.compileAndExecuteCodeTemplate(codeTemplate, context);
 
+        String content = "";
         //Access document, caret, and selection
         final Document document = editor.getDocument();
         final SelectionModel selectionModel = editor.getSelectionModel();

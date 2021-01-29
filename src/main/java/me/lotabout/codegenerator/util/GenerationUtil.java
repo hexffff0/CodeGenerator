@@ -253,7 +253,7 @@ public class GenerationUtil {
     // ------------------- Experimental -------------------
 
     @Deprecated
-    public static String compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context , boolean rebuildContext){
+    public static void compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context , boolean rebuildContext){
         if (rebuildContext){
             context = rebuildContext(context);
         }
@@ -264,18 +264,17 @@ public class GenerationUtil {
             String classPath = parseDependenceClassPath(codeTemplate.template, context);
             jc.useOptions("-classpath", classPath);
 
-            Class<?> clazz = jc.compile(ClassTemplate.CLASS_NAME, codeTemplate.template);
+            Class<?> clazz = jc.compile(codeTemplate.classNameVm, codeTemplate.template);
             Object obj = clazz.newInstance();
-            Method method = clazz.getDeclaredMethod("build", Map.class);
-            return ((String) method.invoke(obj, context));
+            Method method = clazz.getDeclaredMethod("main", Map.class);
+            method.invoke(obj, context);
         } catch (Exception e) {
             logger.error(e);
-            return null;
         }
     }
 
-    public static String compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
-        return compileAndExecuteCodeTemplate(codeTemplate, context, false);
+    public static void compileAndExecuteCodeTemplate(@NotNull CodeTemplate codeTemplate, @NotNull Map<String, Object> context) {
+        compileAndExecuteCodeTemplate(codeTemplate, context, false);
     }
 
     public static Map<String, Object> rebuildContext(Map<String, Object> context){

@@ -32,7 +32,8 @@ public class JavaBodyWorker {
     public static void execute(@NotNull CodeTemplate codeTemplate, @NotNull PsiClass parentClass,
             @NotNull Editor editor, @NotNull Map<String, Object> context) {
         final Project project = parentClass.getProject();
-        String body = GenerationUtil.compileAndExecuteCodeTemplate(codeTemplate, context);
+//        String body = GenerationUtil.compileAndExecuteCodeTemplate(codeTemplate, context);
+        String body = "";
         if (logger.isDebugEnabled()) logger.debug("Method body generated from Velocity:\n" + body);
 
         final PsiClass fakeClass;
