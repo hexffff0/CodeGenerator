@@ -1,4 +1,4 @@
-package me.lotabout.codegenerator.ui;
+package me.lotabout.codegenerator.config;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +11,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import me.lotabout.codegenerator.CodeGeneratorSettings;
 import me.lotabout.codegenerator.config.CodeTemplate;
+import me.lotabout.codegenerator.ui.CodeGeneratorConfig;
 
 public class CodeGeneratorConfigurable implements SearchableConfigurable {
 

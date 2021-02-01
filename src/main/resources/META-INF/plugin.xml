@@ -50,7 +50,7 @@
     <applicationService serviceInterface="me.lotabout.codegenerator.CodeGeneratorSettings"
                         serviceImplementation="me.lotabout.codegenerator.CodeGeneratorSettings"/>
 
-    <applicationConfigurable instance="me.lotabout.codegenerator.ui.CodeGeneratorConfigurable"/>
+    <applicationConfigurable instance="me.lotabout.codegenerator.config.CodeGeneratorConfigurable"/>
   </extensions>
 
   <actions>

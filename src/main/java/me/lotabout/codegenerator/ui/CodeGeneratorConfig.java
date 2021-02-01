@@ -46,7 +46,7 @@ public class CodeGeneratorConfig {
 
             int length = templateListModel.getSize();
             int index = templateList.getSelectedIndex();
-            if (length < 0 || index < 0 || index >= length) {
+            if (index < 0 || index >= length) {
                 splitPane.setRightComponent(splitRightPane);
                 deleteTemplateButton.setEnabled(false);
                 return;

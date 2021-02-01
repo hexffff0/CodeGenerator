@@ -16,6 +16,7 @@ import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.uiDesigner.core.GridConstraints;
 import me.lotabout.codegenerator.config.ClassSelectionConfig;
 import me.lotabout.codegenerator.config.CodeTemplate;
+import me.lotabout.codegenerator.config.PipelineStepConfig;
 
 public class TemplateEditPane {
 

@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.ui.Messages;
 import me.lotabout.codegenerator.config.PipelineStep;
+import me.lotabout.codegenerator.config.PipelineStepConfig;
 
 public class SelectionPane implements PipelineStepConfig {
 

@@ -1,4 +1,4 @@
-package me.lotabout.codegenerator.ui;
+package me.lotabout.codegenerator.config;
 
 import me.lotabout.codegenerator.config.PipelineStep;
 
